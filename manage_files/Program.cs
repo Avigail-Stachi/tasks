@@ -13,14 +13,14 @@ class Program
 
         try
         {
-            Run(dataDir,N);
+            Run1(dataDir,N);
         }
         catch (Exception ex)
         {
             Console.WriteLine($"An error occurred: {ex.Message}");
         }
     }
-    static void Run(string dataDir,int N)
+    static void Run1(string dataDir,int N)
     {
         //split_and_count_errors.ReadOne();
 

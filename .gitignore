@@ -364,3 +364,20 @@ FodyWeavers.xsd
 
 
 תרגיל בית הדסים 5-חיל הים.pdf
+
+
+# Python specific files and directories (for manageFamilyTree project)
+
+# Virtual environment within manageFamilyTree
+/manageFamilyTree/.venv/
+/manageFamilyTree/env/
+
+# Database file
+/manageFamilyTree/data/familyTree.db
+
+# Python bytecode and compiled files
+/manageFamilyTree/__pycache__/
+/manageFamilyTree/*.pyc
+
+# IDE specific files (e.g., PyCharm, VS Code)
+/manageFamilyTree/.idea/
