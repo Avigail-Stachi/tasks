@@ -28,11 +28,12 @@ class Program
         List<string> filesNames= SplitAndCountErrors.MakeDirs(dataDir, numForThreads);
 
         var errorsCount= SplitAndCountErrors.CountErrorsAndMergeWithTPL(filesNames);
+        Console.WriteLine($"count of {Math.Min(N,errorsCount.Count)} errors:");
         foreach(var e in errorsCount.OrderByDescending(x=>x.Value).Take(N))
         {
             Console.WriteLine($"{e.Key}: {e.Value}");
         }
-        Console.WriteLine($"errorsTotalCount: {errorsCount.Count}");
+        Console.WriteLine($"in total there is: {errorsCount.Count} errors");
 
 
 

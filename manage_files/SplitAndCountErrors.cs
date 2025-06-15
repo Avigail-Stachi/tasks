@@ -27,6 +27,8 @@ namespace manage_files
                 Console.WriteLine(line);
             }
         }
+
+
         public static List<string> MakeDirs(string dataDir, int num)
         {
 
@@ -67,7 +69,7 @@ namespace manage_files
                     string outputFilePath = Path.Combine(splitErrorDir, $"file_{i + 1}.txt");
                     filesNames.Add(outputFilePath);
 
-                    using (var writer = new StreamWriter(outputFilePath,false))
+                    using (var writer = new StreamWriter(outputFilePath, false))
                     {
 
                         for (int j = 0; j < linesToWrite; j++)
@@ -103,8 +105,14 @@ namespace manage_files
             using (var reader = new StreamReader(filePath))
             {
                 string? line;
+                int lineNumber = 0;
                 while ((line = reader.ReadLine()) != null)
                 {
+                    lineNumber++;
+                    if (lineNumber % 10000 == 0)
+                    {
+                        Console.WriteLine($"[Thread {Thread.CurrentThread.ManagedThreadId}] Processing  {Path.GetFileName(filePath)} : line {lineNumber}");
+                    }
                     errorIndex = line.IndexOf(start);
                     if (errorIndex >= 0)
                     {
@@ -115,6 +123,7 @@ namespace manage_files
                             errorsCount[errorCode] = 1;
                     }
 
+
                 }
 
             }
@@ -123,7 +132,6 @@ namespace manage_files
         public static ConcurrentDictionary<string, int> CountErrorsAndMergeWithTPL(List<string> filesNames)
         {
             var countAllFiles = new ConcurrentDictionary<string, int>();
-
 
             Parallel.ForEach(filesNames, fileName =>
             {
@@ -137,7 +145,7 @@ namespace manage_files
                     countAllFiles.AddOrUpdate(errorCode, count, (key, val) => val + count);
 
                 }
-                Console.WriteLine($"thread finished for file{fileName} on thread {Thread.CurrentThread.ManagedThreadId}");
+                Console.WriteLine($"[Thread {Thread.CurrentThread.ManagedThreadId}] is done proccesing file {Path.GetFileName(fileName)}");
 
             });
 
