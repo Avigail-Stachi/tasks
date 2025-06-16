@@ -10,10 +10,12 @@ class Program
         const int N = 10;
         string dataDir = @"C:\Users\User\Documents\hadasim\manage_files\data";
 
-
+        string csvPath = Path.Combine(dataDir, "time_series.csv");
+        string parquetPath = Path.Combine(dataDir, "time_series.parquet");
         try
         {
             Run1(dataDir,N);
+            Run2(csvPath, parquetPath);
         }
         catch (Exception ex)
         {
@@ -37,6 +39,11 @@ class Program
 
 
 
+    }
+    static string Run2(string csvPath, string parquetPath)
+    {
+
+        return "cc";
     }
 }
 
