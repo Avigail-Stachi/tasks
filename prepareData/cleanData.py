@@ -2,19 +2,19 @@
 import pandas as pd
 import numpy as np
 import re
-CSV_PATH="./data/time_series.csv"
 
-def manageCsv(csv_path=CSV_PATH):
-    df = pd.read_csv(csv_path)
+def manageCsv(df,path_new_df):
+
     df=clean_data(df)
+    #print(df.head())
+    df=avg_for_hour(df,True)
+    if path_new_df:
+        df.to_csv(path_new_df,index=False)
 
-    return  df
 def clean_data(df):
 
-
-    time_col='timestamp'
-    value_col='value'
-
+    time_col=df.columns[0]
+    value_col=df.columns[1]
     # למחוק שורות ריקות כולל רווחים וכו
     df=df.replace(r'^\s*$',np.nan,regex=True)
 
@@ -42,6 +42,22 @@ def clean_data(df):
 
     return df
 
-print(pd.read_csv(CSV_PATH).head())
 
-print(manageCsv().head())
+def avg_for_hour(df,is_clean=False):
+    if is_clean ==False:
+        clean_data(df)
+    time_col=df.columns[0]
+    value_col=df.columns[1]
+    df['start_time']=df[time_col].dt.floor('h')
+    df=df.groupby('start_time',as_index=False,sort=False)[value_col].mean()
+    df.rename(columns={value_col: 'average'},inplace=True)
+
+    return df
+
+
+#
+# CSV_PATH="./data/time_series.csv"
+#
+# print(pd.read_csv(CSV_PATH).head())
+#
+# print(manageCsv(CSV_PATH).head())
