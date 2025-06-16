@@ -15,7 +15,7 @@ class Program
         try
         {
             Run1(dataDir,N);
-            Run2(csvPath, parquetPath);
+           // Run2(csvPath, parquetPath);
         }
         catch (Exception ex)
         {
