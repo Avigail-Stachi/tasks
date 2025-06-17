@@ -6,7 +6,19 @@ import os
 from multiprocessing import Pool
 
 CSV_PATH="./data/time_series.csv"
+PARQUET_PATH="./data/time_series.parquet"
 OUTPUT_DIR = "./data/split"
+
+
+
+def read_file(file_path):
+    if file_path.endswith(".csv"):
+        return pd.read_csv(file_path)
+    elif file_path.endswith(".parquet"):
+        return pd.read_parquet(file_path)
+    else:
+        raise ValueError("unsupported file path")
+
 
 # def choose_chunk(f_path=CSV_PATH):
 #     mb=os.path.getsize(f_path)/(1024*1024)
@@ -16,7 +28,7 @@ def split_per_day(csv_path=CSV_PATH,output_dir=OUTPUT_DIR):
     os.makedirs(output_dir,exist_ok=True)
     #chunk_size=choose_chunk(csv_path)
 
-    df=pd.read_csv(csv_path)
+    df=read_file(csv_path)
 
     time_col=df.columns[0]
     value_col=df.columns[1]
@@ -28,6 +40,7 @@ def split_per_day(csv_path=CSV_PATH,output_dir=OUTPUT_DIR):
     df_valid=df[df[day_s].notna()]
 
     file_pathes=[]
+    print(df.head())
 
     for day,group in df_valid.groupby(day_s,sort=False):
         file_path=os.path.join(output_dir,f"{day}.csv")
@@ -44,7 +57,7 @@ def split_per_day(csv_path=CSV_PATH,output_dir=OUTPUT_DIR):
 
 def process_file(file_path):
     output_path=file_path.replace(".csv","_hour.csv")
-    df=pd.read_csv(file_path)
+    df=read_file(file_path)
     cleanData.manageCsv(df,output_path)
     return output_path
 
@@ -53,10 +66,10 @@ def cal_seperate_and_merge(files_pathes,new_path="./data/final_hour.csv"):
 
     with Pool(processes=max_proccesses) as pool:
         hour_files=pool.map(process_file,files_pathes)
-    df_all=pd.concat([pd.read_csv(f) for f in hour_files],ignore_index=True)
+    df_all=pd.concat([read_file(f) for f in hour_files],ignore_index=True)
     df_all.to_csv(new_path,index=False)
 
 
 
 if __name__=='__main__':
-    cal_seperate_and_merge(split_per_day())
+    cal_seperate_and_merge(split_per_day(CSV_PATH))

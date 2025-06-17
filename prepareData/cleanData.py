@@ -3,6 +3,9 @@ import pandas as pd
 import numpy as np
 import re
 
+
+
+
 def manageCsv(df,path_new_df):
 
     df=clean_data(df)
