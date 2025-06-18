@@ -69,7 +69,7 @@ namespace manage_files
                     string outputFilePath = Path.Combine(splitErrorDir, $"file_{i + 1}.txt");
                     filesNames.Add(outputFilePath);
 
-                    using (var writer = new StreamWriter(outputFilePath, false))
+                    using (var writer = new StreamWriter(outputFilePath))//false
                     {
 
                         for (int j = 0; j < linesToWrite; j++)
