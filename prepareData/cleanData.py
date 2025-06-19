@@ -4,30 +4,30 @@ import re
 
 
 def save_file(df, file_path, **kwargs):
-    if file_path.endswith(".csv"):
-        return df.to_csv(file_path)
-    elif file_path.endswith(".parquet"):
-        return df.to_parquet(file_path)
+    if file_path.lower().endswith(".csv"):
+        return df.to_csv(file_path,**kwargs)
+    elif file_path.lower().endswith(".parquet"):
+        return df.to_parquet(file_path,**kwargs)
     else:
         raise ValueError("unsupported file path")
 
 
 def read_file(file_path):
-    if file_path.endswith(".csv"):
+    if file_path.lower().endswith(".csv"):
         return pd.read_csv(file_path)
-    elif file_path.endswith(".parquet"):
+    elif file_path.lower().endswith(".parquet"):
         return pd.read_parquet(file_path)
     else:
         raise ValueError("unsupported file path")
 
 
-def manageCsv(df, path_new_df):
-    df = clean_data(df)
+def manageCsv(df,path_new_df=None):
+    # df = clean_data(df)
     # print(df.head())
-    df = avg_for_hour(df, True)
+    df = avg_for_hour(df)
     if path_new_df:
-        save_file(path_new_df, df, index=False)
-
+        save_file(df, path_new_df, index=False)
+    return df
 
 def clean_data(df):
     time_col = df.columns[0]
@@ -54,14 +54,14 @@ def clean_data(df):
 
     # df = df.groupby(time_col, as_index=False)[value_col].sum()  # ממיין
 
-    df = df.groupby(time_col, as_index=False, sort=False)[value_col].sum()
+    df = df.groupby(time_col, as_index=False, sort=False)[value_col].mean()
 
     return df
 
 
 def avg_for_hour(df, is_clean=False):
     # ,include_count=False
-    if is_clean == False:
+    if not is_clean:
         df = clean_data(df)
     # if include_count==True:
 
@@ -75,7 +75,7 @@ def avg_for_hour(df, is_clean=False):
     #     average=(value_col,'mean'),
     #     count=(value_col,'count')
     # )
-    # df.rename(columns={value_col: 'average'},inplace=True)
+    df.rename(columns={value_col: 'average'},inplace=True)
     # if include_count==False:
     #     df=df.drop(columns='count')
     return df
