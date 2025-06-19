@@ -34,7 +34,11 @@ class Program
         Console.WriteLine($"in total there is: {errorsCount.Count} errors");
         Console.WriteLine($"count of {Math.Min(N, errorsCount.Count)} errors:");
         var listOfErrors = new List<(string errorCode, int count)>();
-
+        string splitErrorDir = Path.Combine(dataDir, "split_errors");
+        if (Directory.Exists(splitErrorDir))
+        {
+            Directory.Delete(splitErrorDir, true); 
+        }
         if (N >= errorsCount.Count)
         {
             listOfErrors= errorsCount.Select(x => (x.Key, x.Value)).ToList();
