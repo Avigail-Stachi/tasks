@@ -5,21 +5,15 @@ import os
 
 from multiprocessing import Pool
 
+from cleanData import clean_data
+
 CSV_PATH = "./data/time_series.csv"
 PARQUET_PATH = "./data/time_series_c.parquet"
 OUTPUT_DIR = "./data/split"
 
 
-def split_per_day(csv_path=CSV_PATH):
-    # , output_dir=OUTPUT_DIR
-    # os.makedirs(output_dir, exist_ok=True)
-    # chunk_size=choose_chunk(csv_path)
-
-    df = cleanData.read_file(csv_path)
-
+def split_chunk_by_day(df):
     time_col = df.columns[0]
-    value_col = df.columns[1]
-
     # להמיר את עמודות התאריך לפורמט
     df[time_col] = pd.to_datetime(df[time_col], errors='coerce')
     day_s = 'day'
@@ -28,7 +22,7 @@ def split_per_day(csv_path=CSV_PATH):
 
     list_df = []
     # file_pathes = []
-    print(df.head())
+    # print(df.head())
 
     for day, group in df_valid.groupby(day_s, sort=False):
         # file_path = os.path.join(output_dir, f"{day}.csv")
@@ -46,41 +40,67 @@ def split_per_day(csv_path=CSV_PATH):
     return list_df
 
 
+def split_per_day(file_path=CSV_PATH, chunk_size=10000):
+    if file_path.lower().endswith(".parquet"):
+        return split_chunk_by_day(cleanData.read_file(file_path))
+    elif file_path.lower().endswith(".csv"):
+        chunks = list(cleanData.read_file(file_path, chunk_size))
+        max_processes = min(len(chunks), os.cpu_count())
+        with Pool(processes=max_processes) as pool:
+            listt = pool.map(split_chunk_by_day, chunks)
+        return [df for sub_list in listt for df in sub_list]
+    else:
+        raise ValueError("unsupported file path")
+
+
 def process_file(file_path):
     pid = os.getpid()
     start = time.time()
-    print(f"[PID {pid}] start {file_path}")
+    # print(f"[PID {pid}] start {file_path}")
     output_path = file_path.replace(".csv", "_hour.csv")
     df = cleanData.read_file(file_path)
     cleanData.manageCsv(output_path, df)
     end = time.time()
-    print(f"[PID {pid}] end {file_path}. {end - start} seconds")
+    # print(f"[PID {pid}] end {file_path}. {end - start} seconds")
     return output_path
 
 
 def process_df(df):
     pid = os.getpid()
     start = time.time()
-    print(f"[PID {pid}] start")
+    # print(f"[PID {pid}] start")
     # output_path = file_path.replace(".csv", "_hour.csv")
     # df = cleanData.read_file(file_path)
     df = cleanData.manageCsv(df)
     end = time.time()
-    print(f"[PID {pid}] end. {end - start} seconds")
+    # print(f"[PID {pid}] end. {end - start} seconds")
     return df
 
 
-def cal_seperate_and_merge(list_df,new_path="./data/final_hour.csv"):
+def cal_separate_and_merge(list_df, new_path="./data/final_hour.csv"):
     max_processes = min(len(list_df), os.cpu_count())
     print("using", max_processes, "processes")
     with Pool(processes=max_processes) as pool:
         list_df = pool.map(process_df, list_df)
     df_all = pd.concat(list_df, ignore_index=True)
 
-    cleanData.save_file(df_all, new_path, index=False)
-    return new_path, df_all
+    if new_path.lower().endswith(".parquet"):
+        df=df_all[['start_time','average']]
+    else:
+        df_all['sum'] = df_all['average'] * df_all['count']
 
-def cal_seperate_and_merge_serial(list_df,new_path="./data/final_hour_serial.csv"):
+        df = df_all.groupby('start_time', as_index=False,sort=False).agg({
+            'sum': 'sum',
+            'count': 'sum'
+        })
+
+        df['average'] = df['sum'] / df['count']
+
+    cleanData.save_file(df[['start_time', 'average']], new_path, index=False)
+    return new_path, df[['start_time', 'average']]
+
+
+def cal_separate_and_merge_serial(list_df, new_path="./data/final_hour_serial.csv"):
     new_list = []
     for d in list_df:
         df = process_df(d)
@@ -88,6 +108,7 @@ def cal_seperate_and_merge_serial(list_df,new_path="./data/final_hour_serial.csv
     df_all = pd.concat(new_list, ignore_index=True)
     cleanData.save_file(df_all, new_path, index=False)
     return new_path
+
 
 # def cal_seperate_and_merge_serial(files_pathes, new_path="./data/final_hour_serial.csv"):
 #     hour_files = []
@@ -108,21 +129,28 @@ def run2(path=CSV_PATH, new_path=None):
         raise ValueError("unsupported file path")
     if new_path is None:
         new_path = "./data/final_hour" + ends
-    return cal_seperate_and_merge(split_per_day(path), new_path)
+    return cal_separate_and_merge(split_per_day(path), new_path)
+
+
+def main():
+    print("parquet\n\n")
+    start1 = time.time()
+    p, df = run2(PARQUET_PATH)
+    end1 = time.time()
+    # df = df.sort_values(by='start_time')
+    print(df.head())
+    print(end1 - start1)
+    print("csv\n\n")
+    start2 = time.time()
+    p, df = run2()
+    end2 = time.time()
+    # df = df.sort_values(by='start_time')
+    print(df.head())
+    print(end2 - start2)
+    # print("suppose to")
+    # df = cleanData.read_file(r"C:\Users\User\Documents\hadasim\prepareData\data\time_series.parquet")
+    # print(df.head())
 
 
 if __name__ == '__main__':
-    print("parquet\n\n")
-    p ,df= run2(PARQUET_PATH)
-    #df = df.sort_values(by='start_time')
-    print(df.head())
-    print("csv\n\n")
-    p,df= run2()
-    #df = df.sort_values(by='start_time')
-    print(df.head())
-    print("suppose to")
-    df = cleanData.read_file(r"C:\Users\User\Documents\hadasim\prepareData\data\time_series.parquet")
-    print(df.head())
-
-    # df=pd.read_parquet(r"C:\Users\User\Documents\hadasim\prepareData\data\time_series.parquet")
-    # print(df.head())
+    main()

@@ -5,29 +5,29 @@ import re
 
 def save_file(df, file_path, **kwargs):
     if file_path.lower().endswith(".csv"):
-        return df.to_csv(file_path,**kwargs)
+        return df.to_csv(file_path, **kwargs)
     elif file_path.lower().endswith(".parquet"):
-        return df.to_parquet(file_path,**kwargs)
+        return df.to_parquet(file_path, **kwargs)
     else:
         raise ValueError("unsupported file path")
 
 
-def read_file(file_path):
+def read_file(file_path, chunk_size=10000):
     if file_path.lower().endswith(".csv"):
-        return pd.read_csv(file_path)
+        return pd.read_csv(file_path,chunksize=chunk_size)
     elif file_path.lower().endswith(".parquet"):
         return pd.read_parquet(file_path)
     else:
         raise ValueError("unsupported file path")
 
 
-def manageCsv(df,path_new_df=None):
-    # df = clean_data(df)
-    # print(df.head())
+def manageCsv(df, path_new_df=None):
+
     df = avg_for_hour(df)
     if path_new_df:
         save_file(df, path_new_df, index=False)
     return df
+
 
 def clean_data(df):
     time_col = df.columns[0]
@@ -46,15 +46,18 @@ def clean_data(df):
     # else:
     #     print("no missing values")
 
-    num_rows = len(df)
+    #num_rows = len(df)
     df = df.dropna()
-    num_rows_removed = num_rows - len(df)
-    if num_rows_removed > 0:
-        print(f"removed {num_rows_removed} rows, NaN and NaT")
+    #num_rows_removed = num_rows - len(df)
+    # if num_rows_removed > 0:
+    #     print(f"removed {num_rows_removed} rows, NaN and NaT")
 
     # df = df.groupby(time_col, as_index=False)[value_col].sum()  # ממיין
 
-    df = df.groupby(time_col, as_index=False, sort=False)[value_col].mean()
+    df = df.groupby(time_col, as_index=False, sort=False)[value_col].agg(
+        ['mean','count']
+    )
+    df.rename(columns={'mean':value_col},inplace=True)
 
     return df
 
@@ -67,18 +70,16 @@ def avg_for_hour(df, is_clean=False):
 
     time_col = df.columns[0]
     value_col = df.columns[1]
-    df['start_time'] = df[time_col].dt.floor('h')
+    df['start_time'] = df[df.columns[0]].dt.floor('h')
+    df['sum']=df[value_col]*df['count']
 
-    df = df.groupby('start_time', as_index=False, sort=False)[value_col].mean()
+    df=df.groupby('start_time',as_index=False,sort=False).agg({
+        'sum':'sum',
+        'count':'sum'
+    })
+    df['average'] = df['sum'] / df['count']
 
-    # df=df.groupby('start_time',as_index=False,sort=False).agg(
-    #     average=(value_col,'mean'),
-    #     count=(value_col,'count')
-    # )
-    df.rename(columns={value_col: 'average'},inplace=True)
-    # if include_count==False:
-    #     df=df.drop(columns='count')
-    return df
+    return df[['start_time', 'average', 'count']]
 
 #
 # CSV_PATH="./data/time_series.csv"

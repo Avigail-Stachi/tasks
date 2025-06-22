@@ -1,5 +1,4 @@
 import pandas as pd
-df = pd.read_csv("./data/time_series.csv")
 
-
-df.to_parquet("./data/time_series_c.parquet", engine='pyarrow')
+df=pd.read_csv(r"C:\Users\User\Documents\hadasim\prepareData\data\time_series.csv")
+print(len(df))
