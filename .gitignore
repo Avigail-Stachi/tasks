@@ -381,3 +381,37 @@ FodyWeavers.xsd
 
 # IDE specific files (e.g., PyCharm, VS Code)
 /manageFamilyTree/.idea/
+
+**/.idea/
+
+
+
+# Node modules
+node_modules/
+
+# Environments
+.env
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm/
+.yarn-integrity
+
+# Editor directories and files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Mac specific files
+.DS_Store
+
+# Production build artifacts
+dist/
+build/
+
+**/.env
+**/.ENV
