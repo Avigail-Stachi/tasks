@@ -1,4 +1,4 @@
-import { required } from "joi";
+import Joi from "joi";
 import { Schema, model } from "mongoose";
 
 const orderItemSchema = new Schema(
