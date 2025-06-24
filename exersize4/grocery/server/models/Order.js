@@ -1,3 +1,4 @@
+import { required } from "joi";
 import { Schema, model } from "mongoose";
 
 const orderItemSchema = new Schema(
@@ -8,23 +9,26 @@ const orderItemSchema = new Schema(
   { _id: false }
 );
 
-const orderSchema = new Schema({
-  supplier: {
-    type: Schema.Types.ObjectId,
-    ref: "User",
-    required: true,
-    index: true,
+const orderSchema = new Schema(
+  {
+    supplier: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true,
+    },
+    orderNumber: { type: Number, required: true, unique: true },
+    products: [orderItemSchema],
+    status: {
+      type: String,
+      required: true,
+      enum: ["new", "in progress", "completed"],
+      default: "new",
+      trim: true,
+    },
+    totalPrice: { type: Number, required: true },
   },
-  orderNumber: { type: Number, required: true, unique: true },
-  products: [orderItemSchema],
-  status: {
-    type: String,
-    required: true,
-    enum: ["new", "in progress", "completed"],
-    default: "new",
-    trim: true,
-  },
-  timestamps: true,
-});
+  { timestamps: true }
+);
 
 export const Order = model("Order", orderSchema);

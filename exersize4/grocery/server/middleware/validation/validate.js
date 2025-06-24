@@ -6,7 +6,7 @@ import {
 } from "./orderValidation.js";
 
 const validate = (schema) => (req, res, next) => {
-  const { error } = schema.validate(req.body);
+  const { error, value } = schema.validate(req.body, { abortEarly: false });
   if (error) {
     const errorMessage = error.details
       .map((detail) => detail.message)
