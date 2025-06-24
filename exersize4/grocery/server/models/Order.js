@@ -9,9 +9,22 @@ const orderItemSchema = new Schema(
 );
 
 const orderSchema = new Schema({
-  supplier: { type: Schema.Types.ObjectId, ref: "User", required: true },
+  supplier: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+    index: true,
+  },
+  orderNumber: { type: Number, required: true, unique: true },
   products: [orderItemSchema],
-  status:{type:String,enum:['new','in progress','completed'],default:'new', trim:true}
+  status: {
+    type: String,
+    required: true,
+    enum: ["new", "in progress", "completed"],
+    default: "new",
+    trim: true,
+  },
+  timestamps: true,
 });
 
 export const Order = model("Order", orderSchema);
