@@ -22,9 +22,19 @@ Content-Type: application/json
     "password": "David&11"
 }
 ###
-POST http://localhost:5000/prosucts
+POST http://localhost:5000/products
 Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NWIxYTUxNmI2NmRiYjQyYjg4YjIyMiIsInJvbGUiOiJzdXBwbGllciIsImlhdCI6MTc1MDkzNDAzMSwiZXhwIjoxNzUwOTM3NjMxfQ.EDRW74-dZSXI79RASsena-y5tzNUAYRG-8eRbFhbF3g
 
+{
+    "name": "Milk",
+    "price": 5.5,
+    "minQuantity": 10
+}
 ###
 GET http://localhost:5000/products
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NWIxYTUxNmI2NmRiYjQyYjg4YjIyMiIsInJvbGUiOiJzdXBwbGllciIsImlhdCI6MTc1MDkzMjA4NywiZXhwIjoxNzUwOTM1Njg3fQ.GoAtOwVTp8Hw_x4hotg8ivuV4I7k02r-sf7-_7Y2oXc
+
+###
+GET http://localhost:5000/products/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NWIxOTc4NmI2NmRiYjQyYjg4YjIxZiIsInJvbGUiOiJvd25lciIsImlhdCI6MTc1MDkzNDU5NiwiZXhwIjoxNzUwOTM4MTk2fQ.d4zP37-UCIuKR5wfQdpNXSndv9OFYfU9X_Yc0IueV2E

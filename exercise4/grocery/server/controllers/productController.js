@@ -4,7 +4,8 @@ import { User } from "../models/User.js";
 //הוספת מוצר לספק
 export const createProduct = async (req, res) => {
   const { name, price, minQuantity } = req.validatedBody;
-  const supplierId = req.user._id;
+  console.log(req.validatedBody);
+  const supplierId = req.user.id;
 
   try {
     if (req.user.role !== "supplier") {
