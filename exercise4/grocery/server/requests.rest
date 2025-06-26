@@ -1,0 +1,30 @@
+GET http://localhost:5000/
+###
+
+POST http://localhost:5000/users/registerUser
+###
+POST http://localhost:5000/users/loginUser
+Content-Type: application/json
+
+{
+    "userName": "shlomo",
+    "password": "Shlomo&1" 
+}
+###
+GET http://localhost:5000/products
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NWIxOTc4NmI2NmRiYjQyYjg4YjIxZiIsInJvbGUiOiJvd25lciIsImlhdCI6MTc1MDkzMTg3MiwiZXhwIjoxNzUwOTM1NDcyfQ.q_YdaAd1faxBq5W6WKIsR8BNjQjBw3nwcPhVb-b-1cg
+###
+POST http://localhost:5000/users/loginUser
+Content-Type: application/json
+
+{
+    "userName": "david",
+    "password": "David&11"
+}
+###
+POST http://localhost:5000/prosucts
+Content-Type: application/json
+
+###
+GET http://localhost:5000/products
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NWIxYTUxNmI2NmRiYjQyYjg4YjIyMiIsInJvbGUiOiJzdXBwbGllciIsImlhdCI6MTc1MDkzMjA4NywiZXhwIjoxNzUwOTM1Njg3fQ.GoAtOwVTp8Hw_x4hotg8ivuV4I7k02r-sf7-_7Y2oXc

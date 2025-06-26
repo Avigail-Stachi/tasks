@@ -8,7 +8,7 @@ export const authenticateToken = (req, res, next) => {
 
     const token = authHeader.split(" ")[1]; //לוקח את הטוקן מההדר
     try {
-        const verified = jwt.verify(token, process.env.JWT_SECRET);
+        const verified = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
         req.user = verified; 
         console.log("req.user", req.user)
         next(); 

@@ -27,7 +27,13 @@ app.get("/", (req, res) => {
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).send("something isnt working");
+  res
+    .status(500)
+    .json({
+      msg: "something isnt working",
+      error: err.message,
+      stack: err.stack,
+    });
 });
 
 const PORT = process.env.PORT || 5000;
