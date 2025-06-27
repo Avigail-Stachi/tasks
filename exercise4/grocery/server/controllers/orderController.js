@@ -16,9 +16,9 @@ const getNextSeq = async (seqName) => {
 export const createOrder = async (req, res) => {
   const { supplier, products } = req.validatedBody;
   try {
-    if (req.user.role !== "owner") {
-      return res.status(403).json({ msg: "Only owner can create orders" });
-    }
+    // if (req.user.role !== "owner") {
+    //   return res.status(403).json({ msg: "Only owner can create orders" });
+    // }
     const existSupplier = await User.findById(supplier);
     if (!existSupplier) {
       return res.status(404).json({ msg: "Supplier not found" });
@@ -74,7 +74,7 @@ export const createOrder = async (req, res) => {
 
 export const getOrders = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.id;
     const role = req.user.role;
 
     let orders;
@@ -132,7 +132,7 @@ export const updateOrderStatus = async (req, res) => {
           .status(403)
           .json({ msg: "You can only set status to 'in progress'" });
       }
-      if (order.supplier.toString() !== req.user._id.toString()) {
+      if (order.supplier.toString() !== req.user.id.toString()) {
         return res
           .status(403)
           .json({ msg: "You can update only your own orders" });
@@ -142,10 +142,10 @@ export const updateOrderStatus = async (req, res) => {
         return res
           .status(403)
           .json({ msg: "You can only set status to 'completed'" });
-      }
-    } else {
-      return res.status(403).json({ msg: "Undefined role" });
-    }
+      }}
+    //  else {
+    //   return res.status(403).json({ msg: "Undefined role" });
+    // }
 
     // עדכון סטטוס
     order.status = status;

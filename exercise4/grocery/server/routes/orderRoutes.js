@@ -7,6 +7,7 @@ import {
 import {
   authenticateToken,
   authorizeOwner,
+  authorizeOwnerOrSupplier,
 } from "../middleware/auth.js";
 import {
   createOrderValidation,
@@ -27,6 +28,7 @@ router.get("/", authenticateToken, getOrders);
 router.put(
   "/:orderNumber/status",
   authenticateToken,
+  authorizeOwnerOrSupplier,
   validate(updateOrderStatusValidation),
   updateOrderStatus
 );

@@ -8,9 +8,9 @@ export const createProduct = async (req, res) => {
   const supplierId = req.user.id;
 
   try {
-    if (req.user.role !== "supplier") {
-      return res.status(403).json({ msg: "only suppliers can add products" });
-    }
+    // if (req.user.role !== "supplier") {
+    //   return res.status(403).json({ msg: "only suppliers can add products" });
+    // }
     const productExists = await Product.findOne({ name, supplier: supplierId });
     if (productExists) {
       return res

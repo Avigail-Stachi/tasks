@@ -17,6 +17,7 @@ const userSchema = new Schema({
   companyName: { type: String, required: isRequired, trim: true },
   phone: { type: String, required: isRequired, trim: true },
   contactName: { type: String, required: isRequired, trim: true },
+  refreshToken: { type: String },
 });
 
 userSchema.pre("save", async function (next) {

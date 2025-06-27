@@ -1,0 +1,371 @@
+@baseUrl = http://localhost:5000
+
+// Environment variables to store tokens
+@ownerAccessToken =
+@ownerRefreshToken =
+@supplierAccessToken =
+@supplierRefreshToken =
+
+// --- 1. System Status Check ---
+GET {{baseUrl}}/
+###
+
+// --- 2. User Management ---
+
+// 2.1. Register Owner (Run ONLY if no owner exists in DB, otherwise it will fail with 403)
+POST {{baseUrl}}/users/registerUser
+Content-Type: application/json
+
+{
+    "userName": "owner_user",
+    "password": "Password123!@",
+    "role": "owner"
+}
+
+###
+
+// 2.2. Register a Supplier
+POST {{baseUrl}}/users/registerUser
+Content-Type: application/json
+
+{
+    "userName": "supplier_user",
+    "password": "SupplierPass123!",
+    "role": "supplier",
+    "companyName": "Supplier Inc.",
+    "phone": "0501234567",
+    "contactName": "John Doe"
+}
+###
+
+// 2.3. Login Owner and Save Tokens
+POST {{baseUrl}}/users/loginUser
+Content-Type: application/json
+
+{
+    "userName": "owner_user",
+    "password": "Password123!@"
+}
+###
+// Copy the accessToken and refreshToken from the response into the @ownerAccessToken and @ownerRefreshToken variables above.
+// Example for copying:
+// @ownerAccessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+// @ownerRefreshToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+// 2.4. Login Supplier and Save Tokens
+POST {{baseUrl}}/users/loginUser
+Content-Type: application/json
+
+{
+    "userName": "supplier_user",
+    "password": "SupplierPass123!"
+}
+###
+// Copy the accessToken and refreshToken from the response into the @supplierAccessToken and @supplierRefreshToken variables above.
+
+// 2.5. Create a new User (Only by Owner)
+POST {{baseUrl}}/users/create
+Content-Type: application/json
+Authorization: Bearer {{ownerAccessToken}}
+
+{
+    "userName": "new_staff",
+    "password": "StaffPass123!",
+    "role": "supplier",
+    "companyName": "Staff Co.",
+    "phone": "0529876543",
+    "contactName": "Jane Smith"
+}
+###
+
+// 2.6. Try to create user without owner authorization
+POST {{baseUrl}}/users/create
+Content-Type: application/json
+Authorization: Bearer {{supplierAccessToken}} // Should fail (403)
+
+{
+    "userName": "unauthorized_user",
+    "password": "UnauthorizedPass123!",
+    "role": "supplier",
+    "companyName": "Unauthorized Co.",
+    "phone": "0531112233",
+    "contactName": "Bad Actor"
+}
+###
+
+// 2.7. Refresh Owner's Access Token (after accessToken expires, or just to test)
+POST {{baseUrl}}/users/refreshToken
+Content-Type: application/json
+
+{
+    "refreshToken": "{{ownerRefreshToken}}"
+}
+###
+// If successful, update @ownerAccessToken with the new token from the response.
+
+// 2.8. Logout Owner (invalidates refresh token)
+POST {{baseUrl}}/users/logout
+Content-Type: application/json
+
+{
+    "refreshToken": "{{ownerRefreshToken}}"
+}
+###
+
+// 2.9. Try to refresh token after logout (should fail with 403)
+POST {{baseUrl}}/users/refreshToken
+Content-Type: application/json
+
+{
+    "refreshToken": "{{ownerRefreshToken}}"
+}
+###
+
+// --- 3. Product Management ---
+
+// 3.1. Create a Product (as Supplier)
+POST {{baseUrl}}/products
+Content-Type: application/json
+Authorization: Bearer {{supplierAccessToken}}
+
+{
+    "name": "Organic Apples",
+    "price": 12.50,
+    "minQuantity": 5
+}
+###
+
+// 3.2. Create another Product (as Supplier)
+POST {{baseUrl}}/products
+Content-Type: application/json
+Authorization: Bearer {{supplierAccessToken}}
+
+{
+    "name": "Fresh Oranges",
+    "price": 8.00,
+    "minQuantity": 10
+}
+###
+
+// 3.3. Try to create a product with duplicate name for the same supplier (should fail 409)
+POST {{baseUrl}}/products
+Content-Type: application/json
+Authorization: Bearer {{supplierAccessToken}}
+
+{
+    "name": "Organic Apples",
+    "price": 13.00,
+    "minQuantity": 6
+}
+###
+
+// 3.4. Try to create a product without supplier authorization (as Owner - should fail 403)
+POST {{baseUrl}}/products
+Content-Type: application/json
+Authorization: Bearer {{ownerAccessToken}}
+
+{
+    "name": "Forbidden Product",
+    "price": 100,
+    "minQuantity": 1
+}
+###
+
+// 3.5. Get all Products (as any authenticated user)
+GET {{baseUrl}}/products
+Authorization: Bearer {{ownerAccessToken}}
+###
+
+// 3.6. Get Products by a specific Supplier (replace 'supplier_user' with the actual username)
+GET {{baseUrl}}/products/supplier_user
+Authorization: Bearer {{ownerAccessToken}}
+###
+
+// --- 4. Order Management ---
+
+// **NOTE**: You'll need the _id of the supplier and product created above.
+// Run Get All Products (3.5) and then Get Products by Supplier (3.6) to get the IDs.
+// Manually update the 'supplier' and 'product' IDs in the request body below.
+
+// 4.1. Create an Order (as Owner)
+// Make sure to replace <SUPPLIER_ID_FROM_DB> and <PRODUCT_ID_FROM_DB> with actual IDs from your DB.
+POST {{baseUrl}}/orders
+Content-Type: application/json
+Authorization: Bearer {{ownerAccessToken}}
+
+{
+    "supplier": "<SUPPLIER_ID_FROM_DB>",
+    "products": [
+        {
+            "product": "<PRODUCT_ID_ORGANIC_APPLES_FROM_DB>",
+            "quantity": 15
+        },
+        {
+            "product": "<PRODUCT_ID_FRESH_ORANGES_FROM_DB>",
+            "quantity": 20
+        }
+    ]
+}
+###
+
+// 4.2. Try to create an order without owner authorization (as Supplier - should fail 403)
+POST {{baseUrl}}/orders
+Content-Type: application/json
+Authorization: Bearer {{supplierAccessToken}}
+
+{
+    "supplier": "<SUPPLIER_ID_FROM_DB>",
+    "products": [
+        {
+            "product": "<PRODUCT_ID_ORGANIC_APPLES_FROM_DB>",
+            "quantity": 1
+        }
+    ]
+}
+###
+
+// 4.3. Get All Orders (as Owner)
+GET {{baseUrl}}/orders
+Authorization: Bearer {{ownerAccessToken}}
+###
+// Note an orderNumber from the response to use in the next steps. E.g., 1
+
+// 4.4. Get Supplier's Own Orders (as Supplier)
+GET {{baseUrl}}/orders
+Authorization: Bearer {{supplierAccessToken}}
+###
+
+// 4.5. Update Order Status to 'in progress' (as Supplier, for an order *they* supplied)
+// Replace <ORDER_NUMBER> with the actual order number (e.g., 1)
+PUT {{baseUrl}}/orders/<ORDER_NUMBER>/status
+Content-Type: application/json
+Authorization: Bearer {{supplierAccessToken}}
+
+{
+    "status": "in progress"
+}
+###
+
+// 4.6. Try to set order status to 'completed' as Supplier (should fail 403)
+PUT {{baseUrl}}/orders/<ORDER_NUMBER>/status
+Content-Type: application/json
+Authorization: Bearer {{supplierAccessToken}}
+
+{
+    "status": "completed"
+}
+###
+
+// 4.7. Update Order Status to 'completed' (as Owner)
+// Replace <ORDER_NUMBER> with the actual order number (e.g., 1)
+PUT {{baseUrl}}/orders/<ORDER_NUMBER>/status
+Content-Type: application/json
+Authorization: Bearer {{ownerAccessToken}}
+
+{
+    "status": "completed"
+}
+###
+
+// 4.8. Try to set order status to 'in progress' as Owner (should fail 403)
+PUT {{baseUrl}}/orders/<ORDER_NUMBER>/status
+Content-Type: application/json
+Authorization: Bearer {{ownerAccessToken}}
+
+{
+    "status": "in progress"
+}
+###
+
+// --- 5. Error & Edge Cases ---
+
+// 5.1. Attempt with no token (should fail 401)
+GET {{baseUrl}}/products
+###
+
+// 5.2. Attempt with invalid token (change a character in the token - should fail 403)
+GET {{baseUrl}}/products
+Authorization: Bearer {{supplierAccessToken}}INVALID
+###
+
+// 5.3. Attempt to create order with non-existent supplier (should fail 404)
+POST {{baseUrl}}/orders
+Content-Type: application/json
+Authorization: Bearer {{ownerAccessToken}}
+
+{
+    "supplier": "60d0fe4f22c60c0015a12345", // Non-existent ID
+    "products": [
+        {
+            "product": "<PRODUCT_ID_ORGANIC_APPLES_FROM_DB>",
+            "quantity": 10
+        }
+    ]
+}
+###
+
+// 5.4. Attempt to create order with product not belonging to supplier (should fail 422)
+// You might need two different suppliers and products for this test.
+// Supplier A has Product A. Supplier B tries to order Product A from Supplier B.
+// This requires creating another supplier and product for that supplier.
+
+// Assume you have another supplier `other_supplier_user` and their product `Other Product`.
+// Login `other_supplier_user` and get their product ID.
+// Then try to create an order as owner for `supplier_user` using `Other Product`.
+
+/*
+// --- For testing 5.4, first register and login another supplier ---
+// Register another supplier
+POST {{baseUrl}}/users/registerUser
+Content-Type: application/json
+
+{
+    "userName": "supplier_user_B",
+    "password": "SupplierBPass123!",
+    "role": "supplier",
+    "companyName": "Supplier B Co.",
+    "phone": "0549876543",
+    "contactName": "Bob Johnson"
+}
+###
+
+// Login supplier_user_B and get accessToken (save as @supplierBAccessToken)
+POST {{baseUrl}}/users/loginUser
+Content-Type: application/json
+
+{
+    "userName": "supplier_user_B",
+    "password": "SupplierBPass123!"
+}
+###
+// Save @supplierBAccessToken = ...
+
+// Create product for supplier_user_B
+POST {{baseUrl}}/products
+Content-Type: application/json
+Authorization: Bearer {{supplierBAccessToken}}
+
+{
+    "name": "Supplier B Product",
+    "price": 20.00,
+    "minQuantity": 2
+}
+###
+// Note down the ID of "Supplier B Product". Let's call it <PRODUCT_ID_SUPPLIER_B_FROM_DB>
+
+// Now, attempt 5.4: Create order for 'supplier_user' but with a product from 'supplier_user_B'
+POST {{baseUrl}}/orders
+Content-Type: application/json
+Authorization: Bearer {{ownerAccessToken}}
+
+{
+    "supplier": "<SUPPLIER_ID_FOR_ORIGINAL_SUPPLIER_USER_FROM_DB>", // ID of supplier_user
+    "products": [
+        {
+            "product": "<PRODUCT_ID_SUPPLIER_B_FROM_DB>", // Product ID of supplier_user_B
+            "quantity": 5
+        }
+    ]
+}
+###
+*/

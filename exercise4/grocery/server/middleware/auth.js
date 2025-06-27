@@ -37,3 +37,11 @@ export const authorizeSupplier = (req, res, next) => {
     console.log("req.user", req.user)
     next();
 };
+
+export const authorizeOwnerOrSupplier = (req, res, next) => {
+    if (req.user.role !== "owner" && req.user.role !== "supplier") {
+        return res.status(403).json({ message: "access denied. only the store owner or suppliers can access this" });
+    }
+    console.log("enter authorizeOwnerOrSupplier")
+    next();
+}
